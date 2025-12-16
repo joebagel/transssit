@@ -12,16 +12,16 @@ const leaderboardScreen = document.getElementById('leaderboard-screen');
 const leaderboardList = document.getElementById('leaderboard-list');
 const yourScoreDisplay = document.getElementById('your-score-display');
 
-// Game constants
-const CELL_SIZE = 44;
-const SEGMENT_DISTANCE = 10;
-const MOVEMENT_SPEED = 5;
-const BUS_EMOJI = "🚍";
-
 // Mobile/Gyroscope support
 let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 let gyroscopeEnabled = false;
 let gyroscopePermissionGranted = false;
+
+// Game constants
+const CELL_SIZE = 44;
+const SEGMENT_DISTANCE = 10;
+const MOVEMENT_SPEED = isMobile ? 2.5 : 5; // 50% slower on mobile
+const BUS_EMOJI = "🚍";
 
 // Tilt thresholds (degrees)
 const TILT_THRESHOLD = 15; // Minimum tilt to change direction
@@ -75,28 +75,30 @@ function updateIdentityDisplay() {
 
 // ========== GYROSCOPE CONTROLS ==========
 
-async function requestGyroscopePermission() {
-    // iOS 13+ requires permission request
+function requestGyroscopePermission() {
+    // iOS 13+ requires permission request - MUST be called from user gesture
     if (typeof DeviceOrientationEvent !== 'undefined' && 
         typeof DeviceOrientationEvent.requestPermission === 'function') {
-        try {
-            const permission = await DeviceOrientationEvent.requestPermission();
-            if (permission === 'granted') {
-                gyroscopePermissionGranted = true;
-                enableGyroscope();
-                return true;
-            }
-        } catch (error) {
-            console.log('Gyroscope permission error:', error);
-            return false;
-        }
+        
+        DeviceOrientationEvent.requestPermission()
+            .then(permission => {
+                if (permission === 'granted') {
+                    gyroscopePermissionGranted = true;
+                    enableGyroscope();
+                    console.log('✅ Gyroscope permission granted!');
+                } else {
+                    console.log('❌ Gyroscope permission denied');
+                }
+            })
+            .catch(error => {
+                console.log('Gyroscope permission error:', error);
+            });
+            
     } else if ('DeviceOrientationEvent' in window) {
         // Non-iOS or older iOS - no permission needed
         gyroscopePermissionGranted = true;
         enableGyroscope();
-        return true;
     }
-    return false;
 }
 
 function enableGyroscope() {
@@ -187,13 +189,13 @@ function runIntroAnimation() {
     addNextChar();
 }
 
-async function startGameFromIntro() {
+function startGameFromIntro() {
     if (!introComplete || gameStarted) return;
     gameStarted = true;
     
-    // Request gyroscope permission on mobile
+    // Request gyroscope permission on mobile - MUST happen in user gesture
     if (isMobile && !gyroscopePermissionGranted) {
-        await requestGyroscopePermission();
+        requestGyroscopePermission();
     }
     
     introScreen.style.transition = 'opacity 0.3s, transform 0.3s';

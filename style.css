@@ -387,16 +387,17 @@ body {
     gap: 4px;
     margin-bottom: 15px;
     padding: 12px 24px;
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.2);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: 20px;
-    border: 2px solid rgba(255,255,255,0.3);
+    border: 2px solid rgba(255,255,255,0.4);
 }
 
 #next-food-label {
     font-size: 13px;
     font-weight: 400;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255,255,255,0.8);
     text-transform: uppercase;
     letter-spacing: 2px;
 }
@@ -404,9 +405,10 @@ body {
 #next-food-name {
     font-size: 22px;
     font-weight: 700;
-    color: rgba(255,255,255,0.85);
+    color: #fff;
     text-align: center;
     letter-spacing: 0.5px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 /* ========== CANVAS ========== */
