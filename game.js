@@ -90,28 +90,21 @@ function requestGyroscopePermission() {
                 if (permission === 'granted') {
                     gyroscopePermissionGranted = true;
                     enableGyroscope();
-                    enableGyroBtn.textContent = '✅ Tilt Enabled!';
-                    enableGyroBtn.disabled = true;
                     console.log('✅ Gyroscope permission granted!');
                 } else {
-                    enableGyroBtn.textContent = '❌ Denied - Use Swipe';
-                    console.log('❌ Gyroscope permission denied');
+                    console.log('❌ Gyroscope permission denied - swipe controls available');
                 }
             })
             .catch(error => {
                 console.log('Gyroscope permission error:', error);
-                enableGyroBtn.textContent = '❌ Error - Use Swipe';
             });
             
     } else if ('DeviceOrientationEvent' in window) {
         // Non-iOS or older iOS - no permission needed, try directly
         gyroscopePermissionGranted = true;
         enableGyroscope();
-        enableGyroBtn.textContent = '✅ Tilt Enabled!';
-        enableGyroBtn.disabled = true;
     } else {
-        enableGyroBtn.textContent = '❌ Not Supported';
-        console.log('DeviceOrientationEvent not available');
+        console.log('DeviceOrientationEvent not available - swipe controls available');
     }
 }
 
@@ -227,6 +220,10 @@ function runIntroAnimation() {
             setTimeout(async () => {
                 await initPlayerIdentity();
                 introComplete = true;
+                // Show GO! button on mobile after intro completes
+                if (isMobile) {
+                    enableGyroBtn.classList.remove('hidden');
+                }
             }, 300);
         }
     }
@@ -639,8 +636,7 @@ window.onload = function() {
         introSubtitle.style.display = 'none';
         instructions.textContent = 'Tilt or swipe to steer';
         
-        // Always show GO! button on mobile
-        enableGyroBtn.classList.remove('hidden');
+        // GO! button will be shown after intro animation completes (in runIntroAnimation)
         
         // On Android/non-iOS, we can enable gyro directly (no permission needed)
         if (typeof DeviceOrientationEvent !== 'undefined' && 
