@@ -45,8 +45,10 @@ async function initPlayerIdentity() {
     if (savedPlayer) {
         playerEmoji = savedPlayer.emoji;
         playerNickname = savedPlayer.nickname;
+        console.log('🎫 Loaded identity:', playerEmoji, playerNickname);
     } else {
         await assignNewIdentity();
+        console.log('🎫 Created new identity:', playerEmoji, playerNickname);
     }
     
     updateIdentityDisplay();
@@ -67,6 +69,7 @@ async function assignNewIdentity() {
         playerNickname = "Mystery Rider";
     }
     
+    console.log('🔄 New identity assigned:', playerEmoji, playerNickname);
     await DB.savePlayer(playerEmoji, playerNickname);
 }
 
@@ -521,6 +524,7 @@ function drawEmoji(x, y, char) {
 
 // Show leaderboard with score comparison
 async function showLeaderboard(currentScore) {
+    console.log('🏆 Submitting score for:', playerEmoji, playerNickname, 'Score:', currentScore);
     const result = await DB.submitScore(playerEmoji, playerNickname, currentScore);
     const leaderboard = await DB.getLeaderboard();
     const playerRank = await DB.getPlayerRank(playerEmoji, playerNickname);
