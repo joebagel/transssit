@@ -642,13 +642,16 @@ window.onload = function() {
         introSubtitle.textContent = 'Tap to start';
         instructions.textContent = 'Tilt or swipe to steer';
         
-        // Show gyro enable button on iOS (requires user gesture for permission)
+        // Always show gyro button on mobile
+        enableGyroBtn.classList.remove('hidden');
+        
+        // On Android/non-iOS, we can try to enable directly but still show button
         if (typeof DeviceOrientationEvent !== 'undefined' && 
-            typeof DeviceOrientationEvent.requestPermission === 'function') {
-            enableGyroBtn.classList.remove('hidden');
-        } else {
+            typeof DeviceOrientationEvent.requestPermission !== 'function') {
             // Android or older iOS - try to enable directly
             enableGyroscope();
+            enableGyroBtn.textContent = '✅ Tilt Enabled!';
+            enableGyroBtn.disabled = true;
         }
         
         // Add swipe controls as backup
