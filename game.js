@@ -128,30 +128,22 @@ function handleDeviceOrientation(event) {
     
     // beta: front/back tilt (-180 to 180, 0 = flat)
     // gamma: left/right tilt (-90 to 90, 0 = flat)
-    const beta = event.beta;   // Front/back
-    const gamma = event.gamma; // Left/right
+    const beta = event.beta;   // Front/back -> Y direction
+    const gamma = event.gamma; // Left/right -> X direction
     
     if (beta === null || gamma === null) return;
     
-    // Determine strongest tilt direction
-    const absBeta = Math.abs(beta);
-    const absGamma = Math.abs(gamma);
+    // Check if tilt is significant enough
+    const tiltMagnitude = Math.sqrt(beta * beta + gamma * gamma);
+    if (tiltMagnitude < TILT_THRESHOLD) return;
     
-    // Respond immediately when tilt exceeds threshold
-    if (absGamma > absBeta && absGamma > TILT_THRESHOLD) {
-        // Left/right tilt is dominant
-        if (gamma > 0 && dx !== -1) {
-            nextDx = 1; nextDy = 0; // Right
-        } else if (gamma < 0 && dx !== 1) {
-            nextDx = -1; nextDy = 0; // Left
-        }
-    } else if (absBeta > TILT_THRESHOLD) {
-        // Front/back tilt is dominant
-        if (beta > 0 && dy !== -1) {
-            nextDx = 0; nextDy = 1; // Down (tilt toward you)
-        } else if (beta < 0 && dy !== 1) {
-            nextDx = 0; nextDy = -1; // Up (tilt away)
-        }
+    // 360-degree movement: use tilt as direction vector
+    // gamma controls X (left/right), beta controls Y (up/down)
+    // Normalize to get direction
+    const length = Math.sqrt(gamma * gamma + beta * beta);
+    if (length > 0) {
+        nextDx = gamma / length;
+        nextDy = beta / length;
     }
 }
 
@@ -410,9 +402,17 @@ function createFood() {
 }
 
 function update() {
-    if (nextDx !== -dx && nextDy !== -dy) {
+    // On mobile with gyro: allow any direction (360°)
+    // On desktop: prevent exact 180° reversal
+    if (isMobile && gyroscopeEnabled) {
         dx = nextDx;
         dy = nextDy;
+    } else {
+        // Desktop: only update if not reversing
+        if (nextDx !== -dx || nextDy !== -dy) {
+            dx = nextDx;
+            dy = nextDy;
+        }
     }
     
     headPos.x += dx * MOVEMENT_SPEED;
