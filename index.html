@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TransSsSit</title>
+    <link rel="stylesheet" href="style.css?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Intro Screen -->
+    <div id="intro-screen">
+        <div id="intro-title"></div>
+        <div id="player-identity">
+            <span id="player-emoji"></span>
+            <div id="conductor-label">Choose your headsign</div>
+            <span id="player-nickname"></span>
+            <button id="refresh-nickname" title="Get new nickname">🔄</button>
+        </div>
+        <div id="intro-subtitle">Press any key to start</div>
+    </div>
+    
+    <!-- Game Screen -->
+    <div id="game-container" class="hidden">
+        <div id="next-food">
+            <div id="next-food-label">Next stop</div>
+            <div id="next-food-name">???</div>
+        </div>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <div id="ui-panel">
+            <div id="score">Score: 0</div>
+            <div id="instructions">Use Arrow Keys or WASD to move</div>
+        </div>
+    </div>
+    
+    <!-- Leaderboard Screen -->
+    <div id="leaderboard-screen" class="hidden">
+        <h2>🏆 Leaderboard</h2>
+        <div id="your-score-display"></div>
+        <div id="leaderboard-list"></div>
+        <div id="play-again-prompt">Press any key to play again</div>
+    </div>
+    
+    <script src="emoji_data.js?v=2"></script>
+    <script src="database.js?v=3"></script>
+    <script src="game.js?v=4"></script>
+</body>
+</html>
