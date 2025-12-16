@@ -61,6 +61,15 @@
     box-sizing: border-box;
 }
 
+/* Prevent scrolling/zooming on mobile during gameplay */
+html, body {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior: none;
+}
+
 body {
     margin: 0;
     padding: 0;

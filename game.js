@@ -18,6 +18,15 @@ const SEGMENT_DISTANCE = 10;
 const MOVEMENT_SPEED = 5;
 const BUS_EMOJI = "🚍";
 
+// Mobile/Gyroscope support
+let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+let gyroscopeEnabled = false;
+let gyroscopePermissionGranted = false;
+
+// Tilt thresholds (degrees)
+const TILT_THRESHOLD = 15; // Minimum tilt to change direction
+let lastTiltDirection = { dx: 0, dy: -1 };
+
 // Player identity (persisted across rounds)
 let playerEmoji = "";
 let playerNickname = "";
@@ -64,6 +73,82 @@ function updateIdentityDisplay() {
     playerNicknameElement.textContent = playerNickname;
 }
 
+// ========== GYROSCOPE CONTROLS ==========
+
+async function requestGyroscopePermission() {
+    // iOS 13+ requires permission request
+    if (typeof DeviceOrientationEvent !== 'undefined' && 
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+            const permission = await DeviceOrientationEvent.requestPermission();
+            if (permission === 'granted') {
+                gyroscopePermissionGranted = true;
+                enableGyroscope();
+                return true;
+            }
+        } catch (error) {
+            console.log('Gyroscope permission error:', error);
+            return false;
+        }
+    } else if ('DeviceOrientationEvent' in window) {
+        // Non-iOS or older iOS - no permission needed
+        gyroscopePermissionGranted = true;
+        enableGyroscope();
+        return true;
+    }
+    return false;
+}
+
+function enableGyroscope() {
+    if (gyroscopeEnabled) return;
+    gyroscopeEnabled = true;
+    
+    window.addEventListener('deviceorientation', handleDeviceOrientation, true);
+    console.log('🎮 Gyroscope controls enabled!');
+}
+
+function handleDeviceOrientation(event) {
+    if (!isGameRunning) return;
+    
+    // beta: front/back tilt (-180 to 180, 0 = flat)
+    // gamma: left/right tilt (-90 to 90, 0 = flat)
+    const beta = event.beta;   // Front/back
+    const gamma = event.gamma; // Left/right
+    
+    if (beta === null || gamma === null) return;
+    
+    // Determine strongest tilt direction
+    const absBeta = Math.abs(beta);
+    const absGamma = Math.abs(gamma);
+    
+    // Only change direction if tilt exceeds threshold
+    if (absBeta > TILT_THRESHOLD || absGamma > TILT_THRESHOLD) {
+        if (absGamma > absBeta) {
+            // Left/right tilt is stronger
+            if (gamma > TILT_THRESHOLD && dx !== -1) {
+                // Tilting right
+                nextDx = 1;
+                nextDy = 0;
+            } else if (gamma < -TILT_THRESHOLD && dx !== 1) {
+                // Tilting left
+                nextDx = -1;
+                nextDy = 0;
+            }
+        } else {
+            // Front/back tilt is stronger
+            if (beta > TILT_THRESHOLD && dy !== -1) {
+                // Tilting forward (toward you) = down
+                nextDx = 0;
+                nextDy = 1;
+            } else if (beta < -TILT_THRESHOLD && dy !== 1) {
+                // Tilting back (away from you) = up
+                nextDx = 0;
+                nextDy = -1;
+            }
+        }
+    }
+}
+
 // Refresh nickname button
 refreshNicknameBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
@@ -102,9 +187,14 @@ function runIntroAnimation() {
     addNextChar();
 }
 
-function startGameFromIntro() {
+async function startGameFromIntro() {
     if (!introComplete || gameStarted) return;
     gameStarted = true;
+    
+    // Request gyroscope permission on mobile
+    if (isMobile && !gyroscopePermissionGranted) {
+        await requestGyroscopePermission();
+    }
     
     introScreen.style.transition = 'opacity 0.3s, transform 0.3s';
     introScreen.style.opacity = '0';
@@ -153,6 +243,18 @@ document.addEventListener('click', (e) => {
         startGameFromIntro();
     }
 });
+
+// Touch events for mobile
+document.addEventListener('touchstart', (e) => {
+    // Don't trigger game start if touching refresh button
+    if (e.target === refreshNicknameBtn) return;
+    
+    if (showingLeaderboard) {
+        startGameFromLeaderboard();
+    } else if (!gameStarted && introComplete) {
+        startGameFromIntro();
+    }
+}, { passive: true });
 
 // Color generator
 let colorIndex = 0;
@@ -484,4 +586,13 @@ function handleGameInput(e) {
 
 window.onload = function() {
     runIntroAnimation();
+    
+    // Update instructions based on device
+    const introSubtitle = document.getElementById('intro-subtitle');
+    const instructions = document.getElementById('instructions');
+    
+    if (isMobile) {
+        introSubtitle.textContent = 'Tap to start';
+        instructions.textContent = 'Tilt your phone to steer';
+    }
 };
