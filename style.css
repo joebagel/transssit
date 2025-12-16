@@ -188,8 +188,37 @@ body {
     transform: scale(0.9) rotate(180deg);
 }
 
+#enable-gyro {
+    margin-top: 30px;
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Puffin Transit', sans-serif;
+    color: #fff;
+    background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.4);
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#enable-gyro:hover, #enable-gyro:active {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.05);
+}
+
+#enable-gyro:disabled {
+    opacity: 0.7;
+    cursor: default;
+    transform: none;
+}
+
+#enable-gyro.hidden {
+    display: none;
+}
+
 #intro-subtitle {
-    margin-top: 40px;
+    margin-top: 20px;
     font-size: 16px;
     color: rgba(255,255,255,0.8);
     animation: blink 1.2s infinite;

@@ -11,6 +11,8 @@ const refreshNicknameBtn = document.getElementById('refresh-nickname');
 const leaderboardScreen = document.getElementById('leaderboard-screen');
 const leaderboardList = document.getElementById('leaderboard-list');
 const yourScoreDisplay = document.getElementById('your-score-display');
+const enableGyroBtn = document.getElementById('enable-gyro');
+const introSubtitle = document.getElementById('intro-subtitle');
 
 // Mobile/Gyroscope support
 let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -76,28 +78,40 @@ function updateIdentityDisplay() {
 // ========== GYROSCOPE CONTROLS ==========
 
 function requestGyroscopePermission() {
+    console.log('🎮 Requesting gyroscope permission...');
+    
     // iOS 13+ requires permission request - MUST be called from user gesture
     if (typeof DeviceOrientationEvent !== 'undefined' && 
         typeof DeviceOrientationEvent.requestPermission === 'function') {
         
         DeviceOrientationEvent.requestPermission()
             .then(permission => {
+                console.log('Permission response:', permission);
                 if (permission === 'granted') {
                     gyroscopePermissionGranted = true;
                     enableGyroscope();
+                    enableGyroBtn.textContent = '✅ Tilt Enabled!';
+                    enableGyroBtn.disabled = true;
                     console.log('✅ Gyroscope permission granted!');
                 } else {
+                    enableGyroBtn.textContent = '❌ Denied - Use Swipe';
                     console.log('❌ Gyroscope permission denied');
                 }
             })
             .catch(error => {
                 console.log('Gyroscope permission error:', error);
+                enableGyroBtn.textContent = '❌ Error - Use Swipe';
             });
             
     } else if ('DeviceOrientationEvent' in window) {
-        // Non-iOS or older iOS - no permission needed
+        // Non-iOS or older iOS - no permission needed, try directly
         gyroscopePermissionGranted = true;
         enableGyroscope();
+        enableGyroBtn.textContent = '✅ Tilt Enabled!';
+        enableGyroBtn.disabled = true;
+    } else {
+        enableGyroBtn.textContent = '❌ Not Supported';
+        console.log('DeviceOrientationEvent not available');
     }
 }
 
@@ -151,6 +165,43 @@ function handleDeviceOrientation(event) {
     }
 }
 
+// ========== SWIPE CONTROLS (Backup for mobile) ==========
+let touchStartX = 0;
+let touchStartY = 0;
+const SWIPE_THRESHOLD = 30;
+
+function handleTouchStart(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}
+
+function handleTouchEnd(e) {
+    if (!isGameRunning) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    
+    const diffX = touchEndX - touchStartX;
+    const diffY = touchEndY - touchStartY;
+    
+    // Determine swipe direction
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > SWIPE_THRESHOLD) {
+        // Horizontal swipe
+        if (diffX > 0 && dx !== -1) {
+            nextDx = 1; nextDy = 0; // Right
+        } else if (diffX < 0 && dx !== 1) {
+            nextDx = -1; nextDy = 0; // Left
+        }
+    } else if (Math.abs(diffY) > SWIPE_THRESHOLD) {
+        // Vertical swipe
+        if (diffY > 0 && dy !== -1) {
+            nextDx = 0; nextDy = 1; // Down
+        } else if (diffY < 0 && dy !== 1) {
+            nextDx = 0; nextDy = -1; // Up
+        }
+    }
+}
+
 // Refresh nickname button
 refreshNicknameBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
@@ -192,11 +243,6 @@ function runIntroAnimation() {
 function startGameFromIntro() {
     if (!introComplete || gameStarted) return;
     gameStarted = true;
-    
-    // Request gyroscope permission on mobile - MUST happen in user gesture
-    if (isMobile && !gyroscopePermissionGranted) {
-        requestGyroscopePermission();
-    }
     
     introScreen.style.transition = 'opacity 0.3s, transform 0.3s';
     introScreen.style.opacity = '0';
@@ -589,12 +635,30 @@ function handleGameInput(e) {
 window.onload = function() {
     runIntroAnimation();
     
-    // Update instructions based on device
-    const introSubtitle = document.getElementById('intro-subtitle');
+    // Update UI based on device
     const instructions = document.getElementById('instructions');
     
     if (isMobile) {
         introSubtitle.textContent = 'Tap to start';
-        instructions.textContent = 'Tilt your phone to steer';
+        instructions.textContent = 'Tilt or swipe to steer';
+        
+        // Show gyro enable button on iOS (requires user gesture for permission)
+        if (typeof DeviceOrientationEvent !== 'undefined' && 
+            typeof DeviceOrientationEvent.requestPermission === 'function') {
+            enableGyroBtn.classList.remove('hidden');
+        } else {
+            // Android or older iOS - try to enable directly
+            enableGyroscope();
+        }
+        
+        // Add swipe controls as backup
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
+        canvas.addEventListener('touchend', handleTouchEnd, { passive: true });
     }
 };
+
+// Gyro button click handler - MUST be direct user gesture for iOS
+enableGyroBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    requestGyroscopePermission();
+});
