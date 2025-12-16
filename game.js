@@ -22,7 +22,7 @@ let gyroscopePermissionGranted = false;
 // Game constants
 const CELL_SIZE = 51; // 15% bigger than 44
 const SEGMENT_DISTANCE = 10;
-const MOVEMENT_SPEED = isMobile ? 3.125 : 5; // 37.5% slower on mobile (was 50%)
+const MOVEMENT_SPEED = isMobile ? 4.7 : 5; // Close to desktop speed on mobile
 const BUS_EMOJI = "🚍";
 
 // Tilt thresholds (degrees) - lower = more sensitive
