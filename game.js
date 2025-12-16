@@ -22,11 +22,11 @@ let gyroscopePermissionGranted = false;
 // Game constants
 const CELL_SIZE = 44;
 const SEGMENT_DISTANCE = 10;
-const MOVEMENT_SPEED = isMobile ? 2.5 : 5; // 50% slower on mobile
+const MOVEMENT_SPEED = isMobile ? 3.125 : 5; // 37.5% slower on mobile (was 50%)
 const BUS_EMOJI = "🚍";
 
-// Tilt thresholds (degrees)
-const TILT_THRESHOLD = 15; // Minimum tilt to change direction
+// Tilt thresholds (degrees) - lower = more sensitive
+const TILT_THRESHOLD = isMobile ? 10 : 15; // More sensitive on mobile
 let lastTiltDirection = { dx: 0, dy: -1 };
 
 // Player identity (persisted across rounds)
@@ -119,7 +119,11 @@ function enableGyroscope() {
     if (gyroscopeEnabled) return;
     gyroscopeEnabled = true;
     
-    window.addEventListener('deviceorientation', handleDeviceOrientation, true);
+    // Use high-frequency event listener for more responsive controls
+    window.addEventListener('deviceorientation', handleDeviceOrientation, { 
+        passive: true,
+        capture: true 
+    });
     console.log('🎮 Gyroscope controls enabled!');
 }
 
@@ -137,30 +141,20 @@ function handleDeviceOrientation(event) {
     const absBeta = Math.abs(beta);
     const absGamma = Math.abs(gamma);
     
-    // Only change direction if tilt exceeds threshold
-    if (absBeta > TILT_THRESHOLD || absGamma > TILT_THRESHOLD) {
-        if (absGamma > absBeta) {
-            // Left/right tilt is stronger
-            if (gamma > TILT_THRESHOLD && dx !== -1) {
-                // Tilting right
-                nextDx = 1;
-                nextDy = 0;
-            } else if (gamma < -TILT_THRESHOLD && dx !== 1) {
-                // Tilting left
-                nextDx = -1;
-                nextDy = 0;
-            }
-        } else {
-            // Front/back tilt is stronger
-            if (beta > TILT_THRESHOLD && dy !== -1) {
-                // Tilting forward (toward you) = down
-                nextDx = 0;
-                nextDy = 1;
-            } else if (beta < -TILT_THRESHOLD && dy !== 1) {
-                // Tilting back (away from you) = up
-                nextDx = 0;
-                nextDy = -1;
-            }
+    // Respond immediately when tilt exceeds threshold
+    if (absGamma > absBeta && absGamma > TILT_THRESHOLD) {
+        // Left/right tilt is dominant
+        if (gamma > 0 && dx !== -1) {
+            nextDx = 1; nextDy = 0; // Right
+        } else if (gamma < 0 && dx !== 1) {
+            nextDx = -1; nextDy = 0; // Left
+        }
+    } else if (absBeta > TILT_THRESHOLD) {
+        // Front/back tilt is dominant
+        if (beta > 0 && dy !== -1) {
+            nextDx = 0; nextDy = 1; // Down (tilt toward you)
+        } else if (beta < 0 && dy !== 1) {
+            nextDx = 0; nextDy = -1; // Up (tilt away)
         }
     }
 }
