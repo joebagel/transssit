@@ -276,8 +276,11 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('click', (e) => {
-    // Don't trigger game start if clicking refresh button
-    if (e.target === refreshNicknameBtn) return;
+    // Don't trigger game start if clicking refresh button or gyro button
+    if (e.target === refreshNicknameBtn || e.target === enableGyroBtn) return;
+    
+    // On mobile, only the GO! button starts the game
+    if (isMobile && !gameStarted) return;
     
     if (showingLeaderboard) {
         startGameFromLeaderboard();
@@ -286,15 +289,14 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Touch events for mobile
+// Touch events for mobile - only leaderboard restart, not game start
 document.addEventListener('touchstart', (e) => {
-    // Don't trigger game start if touching refresh button
-    if (e.target === refreshNicknameBtn) return;
+    // Don't trigger if touching buttons
+    if (e.target === refreshNicknameBtn || e.target === enableGyroBtn) return;
     
+    // On mobile, only the GO! button starts the game from intro
     if (showingLeaderboard) {
         startGameFromLeaderboard();
-    } else if (!gameStarted && introComplete) {
-        startGameFromIntro();
     }
 }, { passive: true });
 
@@ -633,19 +635,17 @@ window.onload = function() {
     const instructions = document.getElementById('instructions');
     
     if (isMobile) {
-        introSubtitle.textContent = 'Tap to start';
+        // Hide "tap to start" - use GO! button instead
+        introSubtitle.style.display = 'none';
         instructions.textContent = 'Tilt or swipe to steer';
         
-        // Always show gyro button on mobile
+        // Always show GO! button on mobile
         enableGyroBtn.classList.remove('hidden');
         
-        // On Android/non-iOS, we can try to enable directly but still show button
+        // On Android/non-iOS, we can enable gyro directly (no permission needed)
         if (typeof DeviceOrientationEvent !== 'undefined' && 
             typeof DeviceOrientationEvent.requestPermission !== 'function') {
-            // Android or older iOS - try to enable directly
             enableGyroscope();
-            enableGyroBtn.textContent = '✅ Tilt Enabled!';
-            enableGyroBtn.disabled = true;
         }
         
         // Add swipe controls as backup
@@ -654,8 +654,18 @@ window.onload = function() {
     }
 };
 
-// Gyro button click handler - MUST be direct user gesture for iOS
+// GO! button click handler - enables gyro AND starts game on mobile
 enableGyroBtn.addEventListener('click', function(e) {
     e.stopPropagation();
-    requestGyroscopePermission();
+    
+    // Request gyroscope permission (iOS needs this from user gesture)
+    if (typeof DeviceOrientationEvent !== 'undefined' && 
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+        requestGyroscopePermission();
+    }
+    
+    // Start the game
+    if (!gameStarted && introComplete) {
+        startGameFromIntro();
+    }
 });

@@ -189,32 +189,25 @@ body {
 }
 
 #enable-gyro {
-    margin-top: 40px;
-    padding: 16px 32px;
-    font-size: 18px;
-    font-weight: 700;
+    margin-top: 50px;
+    padding: 20px 60px;
+    font-size: 28px;
+    font-weight: 800;
     font-family: 'Puffin Transit', sans-serif;
     color: #fff;
-    background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%);
-    border: 2px solid rgba(255,255,255,0.5);
-    border-radius: 40px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%);
+    border: 3px solid rgba(255,255,255,0.6);
+    border-radius: 50px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    letter-spacing: 2px;
 }
 
 #enable-gyro:hover, #enable-gyro:active {
-    background: linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.25) 100%);
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-}
-
-#enable-gyro:disabled {
-    opacity: 0.8;
-    cursor: default;
-    transform: none;
-    background: rgba(100, 200, 100, 0.3);
-    border-color: rgba(100, 200, 100, 0.5);
+    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.25) 100%);
+    transform: scale(1.08);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
 
 #enable-gyro.hidden {
