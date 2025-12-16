@@ -20,7 +20,7 @@ let gyroscopeEnabled = false;
 let gyroscopePermissionGranted = false;
 
 // Game constants
-const CELL_SIZE = 44;
+const CELL_SIZE = 51; // 15% bigger than 44
 const SEGMENT_DISTANCE = 10;
 const MOVEMENT_SPEED = isMobile ? 3.125 : 5; // 37.5% slower on mobile (was 50%)
 const BUS_EMOJI = "🚍";
